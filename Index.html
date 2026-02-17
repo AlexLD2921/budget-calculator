@@ -1,16 +1,16 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>UK Pay & Budget Dashboard | apeX CX</title>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js?v=2"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js?v=2"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js?v=2"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#1f2937}
-input,select,button,textarea{font-family:inherit}
+input,select,button{font-family:inherit}
 button{cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:0.5}
 .container{max-width:900px;margin:0 auto;padding:24px 16px}
@@ -34,16 +34,9 @@ button:disabled{cursor:not-allowed;opacity:0.5}
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect}=React;
-
-const BH=new Set(["2024-01-01","2024-03-29","2024-04-01","2024-05-06","2024-05-27","2024-08-26","2024-12-25","2024-12-26","2025-01-01","2025-04-18","2025-04-21","2025-05-05","2025-05-26","2025-08-25","2025-12-25","2025-12-26","2026-01-01","2026-04-03","2026-04-06","2026-05-04","2026-05-25","2026-08-31","2026-12-25","2026-12-28"]);
-const isWD=d=>{const w=d.getDay();return w!==0&&w!==6&&!BH.has(d.toISOString().slice(0,10))};
-const lastWD=(y,m)=>{let d=new Date(y,m+1,0);while(!isWD(d))d.setDate(d.getDate()-1);return new Date(d)};
-const firstWD=(y,m)=>{let d=new Date(y,m,1);while(!isWD(d))d.setDate(d.getDate()+1);return new Date(d)};
-const resDate=(r,y,m)=>{if(r==="last")return lastWD(y,m);if(r==="first")return firstWD(y,m);const n=parseInt(r);if(!isNaN(n)){let d=new Date(y,m,n);while(!isWD(d))d.setDate(d.getDate()-1);return new Date(d)}return null};
+const {useState,useEffect,useMemo}=React;
 
 const gbp=n=>new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0}).format(n||0);
-const fmtD=d=>d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"—";
 
 const calcTax=g=>{if(g<=12570)return 0;const ti=g-12570;if(g<=50270)return ti*0.20;if(g<=125140)return(50270-12570)*0.20+(g-50270)*0.40;return(50270-12570)*0.20+(125140-50270)*0.40+(g-125140)*0.45};
 const calcNI=g=>{if(g<=12570)return 0;if(g<=50270)return(g-12570)*0.08;return(50270-12570)*0.08+(g-50270)*0.02};
@@ -64,8 +57,6 @@ const net=gross-tax-ni-pen-cc-cy-sl;
 return{gross,base,bonus,bens,tax,ni,pen,ePen,totalPen:pen+ePen,sl,net,netM:net/12,netW:net/52}
 }
 
-const CATS=["Housing","Car","Insurance","Media","Dog","Loans","Kids","Health","Savings","Short Term Payment","Food","Petrol","Schools","Misc"];
-const ACCS=["Starling","Nationwide","Other"];
 const emptyP=()=>({grossSalary:"",bonus:"",carBenefit:"",medicalBenefit:"",otherBenefits:"",pensionPercent:"",pensionFixed:"",employerPensionPercent:"",employerPensionFixed:"",studentLoan:"none",childcare:"",cyclescheme:""});
 
 const ls={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -96,8 +87,8 @@ return <div className="container">
 </div>
 
 {tab==="calc"&&<PayCalc onUse={useInBudget}/>}
-{tab==="budget"&&<BudgetSetup incomes={incomes} setIncomes={setIncomes} outgoings={outgoings} setOutgoings={setOutgoings}/>}
-{tab==="dashboard"&&<Dashboard incomes={incomes} outgoings={outgoings}/>}
+{tab==="budget"&&<p style={{textAlign:"center",padding:"40px",color:"#9ca3af"}}>Budget wizard coming soon</p>}
+{tab==="dashboard"&&<Dashboard incomes={incomes}/>}
 
 <p style={{textAlign:"center",color:"#d1d5db",fontSize:"11px",marginTop:"32px"}}>apeX CX · apexcx.co.uk · 2024/25 tax rates</p>
 </div>
@@ -107,7 +98,9 @@ function PayCalc({onUse}){
 const[hm,setHm]=useState("single");
 const[p1,setP1]=useState(emptyP());
 const[p2,setP2]=useState(emptyP());
-const r1=calcP(p1),r2=hm==="dual"?calcP(p2):null;
+
+const r1=useMemo(()=>calcP(p1),[p1]);
+const r2=useMemo(()=>hm==="dual"?calcP(p2):null,[p2,hm]);
 
 return <div>
 <div style={{display:"flex",justifyContent:"center",marginBottom:"20px"}}>
@@ -119,8 +112,8 @@ return <div>
 </div>
 
 <div className="grid" style={{gridTemplateColumns:hm==="dual"?"1fr 1fr":"1fr"}}>
-<PersonInput key="p1" p={p1} setP={setP1} label={hm==="dual"?"Person 1":"Your Details"}/>
-<PersonInput key="p2" p={p2} setP={setP2} label="Person 2"/>
+<PersonInput p={p1} setP={setP1} label={hm==="dual"?"Person 1":"Your Details"}/>
+{hm==="dual"&&<PersonInput p={p2} setP={setP2} label="Person 2"/>}
 </div>
 
 <div className="grid" style={{gridTemplateColumns:hm==="dual"?"1fr 1fr":"1fr",marginTop:"16px"}}>
@@ -145,14 +138,18 @@ return <div>
 </div>
 }
 
-const PersonInput=React.memo(function PersonInput({p,setP,label}){
+const PersonInput=React.memo(({p,setP,label})=>{
+const handleChange=(field)=>(e)=>{
+setP(prev=>({...prev,[field]:e.target.value}));
+};
+
 return <div className="card">
 <h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"16px"}}>{label}</h3>
 <div className="field">
 <label>Base Annual Salary</label>
 <div style={{position:"relative"}}>
 <span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
-<input type="number" value={p.grossSalary} onChange={e=>setP({...p,grossSalary:e.target.value})} placeholder="50000" style={{paddingLeft:"26px"}}/>
+<input type="number" value={p.grossSalary} onChange={handleChange('grossSalary')} placeholder="50000" style={{paddingLeft:"26px"}}/>
 </div>
 </div>
 <div className="grid grid-2">
@@ -160,34 +157,35 @@ return <div className="card">
 <label>Annual Bonus</label>
 <div style={{position:"relative"}}>
 <span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
-<input type="number" value={p.bonus} onChange={e=>setP({...p,bonus:e.target.value})} placeholder="0" style={{paddingLeft:"26px"}}/>
+<input type="number" value={p.bonus} onChange={handleChange('bonus')} placeholder="0" style={{paddingLeft:"26px"}}/>
 </div>
 </div>
 <div className="field">
 <label>Car Benefit</label>
 <div style={{position:"relative"}}>
 <span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
-<input type="number" value={p.carBenefit} onChange={e=>setP({...p,carBenefit:e.target.value})} placeholder="0" style={{paddingLeft:"26px"}}/>
+<input type="number" value={p.carBenefit} onChange={handleChange('carBenefit')} placeholder="0" style={{paddingLeft:"26px"}}/>
 </div>
 </div>
 <div className="field">
 <label>Pension %</label>
-<input type="number" value={p.pensionPercent} onChange={e=>setP({...p,pensionPercent:e.target.value})} placeholder="5"/>
+<input type="number" value={p.pensionPercent} onChange={handleChange('pensionPercent')} placeholder="5"/>
 </div>
 <div className="field">
 <label>Employer Pension %</label>
-<input type="number" value={p.employerPensionPercent} onChange={e=>setP({...p,employerPensionPercent:e.target.value})} placeholder="3"/>
+<input type="number" value={p.employerPensionPercent} onChange={handleChange('employerPensionPercent')} placeholder="3"/>
 </div>
 </div>
 <div className="field">
 <label>Student Loan</label>
-<select value={p.studentLoan} onChange={e=>setP({...p,studentLoan:e.target.value})}>
+<select value={p.studentLoan} onChange={handleChange('studentLoan')}>
 <option value="none">None</option>
 {Object.keys(SL).map(k=><option key={k} value={k}>{k.charAt(0).toUpperCase()+k.slice(1)}</option>)}
 </select>
 </div>
 </div>
 });
+
 function PersonResult({r,label}){
 return <div className="card">
 <h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"12px"}}>{label}</h3>
@@ -230,36 +228,8 @@ return <div className="card">
 </div>
 }
 
-function BudgetSetup({incomes,setIncomes,outgoings,setOutgoings}){
+function Dashboard({incomes}){
 const totalIn=incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
-const totalOut=outgoings.reduce((s,o)=>s+(o.monthlyAmount||0),0);
-
-return <div>
-<div className="card">
-<h3 style={{fontSize:"18px",fontWeight:"600",marginBottom:"12px"}}>Income Sources</h3>
-{incomes.length===0?<p style={{color:"#9ca3af",textAlign:"center",padding:"20px"}}>No income sources yet. Use the Pay Calculator to add income.</p>:
-<div>
-{incomes.map(i=><div key={i.id} style={{display:"flex",justifyContent:"space-between",padding:"12px",background:"#f9fafb",borderRadius:"8px",marginBottom:"8px"}}>
-<div><p style={{fontWeight:"600",fontSize:"14px"}}>{i.name}</p><p style={{fontSize:"12px",color:"#9ca3af"}}>{i.category}</p></div>
-<span style={{color:"#16a34a",fontWeight:"700"}}>{gbp(i.amount)}/mo</span>
-</div>)}
-<div style={{display:"flex",justifyContent:"space-between",padding:"10px 16px",background:"#f0fdf4",borderRadius:"8px",fontSize:"14px",fontWeight:"700",color:"#16a34a",marginTop:"12px"}}>
-<span>Total Monthly Income</span><span>{gbp(totalIn)}</span>
-</div>
-</div>}
-</div>
-
-<div className="card">
-<h3 style={{fontSize:"18px",fontWeight:"600",marginBottom:"12px"}}>Outgoings</h3>
-<p style={{color:"#9ca3af",textAlign:"center",padding:"20px"}}>Budget wizard coming soon</p>
-</div>
-</div>
-}
-
-function Dashboard({incomes,outgoings}){
-const totalIn=incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
-const totalOut=outgoings.reduce((s,o)=>s+(o.monthlyAmount||0),0);
-const surplus=totalIn-totalOut;
 
 return <div>
 <div className="grid grid-3">
@@ -268,21 +238,10 @@ return <div>
 <p style={{fontSize:"22px",fontWeight:"700"}}>{gbp(totalIn)}</p>
 <p style={{fontSize:"11px",opacity:0.7}}>{gbp(totalIn/52)}/wk</p>
 </div>
-<div className="stat stat-red">
-<p style={{fontSize:"12px",marginBottom:"4px"}}>Monthly Outgoings</p>
-<p style={{fontSize:"22px",fontWeight:"700"}}>{gbp(totalOut)}</p>
-<p style={{fontSize:"11px",opacity:0.7}}>{gbp(totalOut/52)}/wk</p>
 </div>
-<div className={`stat ${surplus>=0?"stat-blue":"stat-red"}`}>
-<p style={{fontSize:"12px",marginBottom:"4px"}}>{surplus>=0?"Surplus":"Deficit"}</p>
-<p style={{fontSize:"22px",fontWeight:"700"}}>{gbp(Math.abs(surplus))}</p>
-<p style={{fontSize:"11px",opacity:0.7}}>{gbp(Math.abs(surplus)/52)}/wk</p>
-</div>
-</div>
-
-{incomes.length===0?<div className="card" style={{textAlign:"center",padding:"40px"}}>
-<p style={{color:"#9ca3af",marginBottom:"12px"}}>Add income in the Pay Calculator to see your dashboard</p>
-</div>:null}
+{incomes.length===0&&<div className="card" style={{textAlign:"center",padding:"40px"}}>
+<p style={{color:"#9ca3af"}}>Add income in the Pay Calculator to see your dashboard</p>
+</div>}
 </div>
 }
 
@@ -290,8 +249,3 @@ ReactDOM.render(<App/>,document.getElementById("root"));
 </script>
 </body>
 </html>
-
-
-
-
-
