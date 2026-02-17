@@ -119,8 +119,8 @@ return <div>
 </div>
 
 <div className="grid" style={{gridTemplateColumns:hm==="dual"?"1fr 1fr":"1fr"}}>
-<PersonInput p={p1} setP={setP1} label={hm==="dual"?"Person 1":"Your Details"}/>
-{hm==="dual"&&<PersonInput p={p2} setP={setP2} label="Person 2"/>}
+<PersonInput key="p1" p={p1} setP={setP1} label={hm==="dual"?"Person 1":"Your Details"}/>
+<PersonInput key="p2" p={p2} setP={setP2} label="Person 2"/>
 </div>
 
 <div className="grid" style={{gridTemplateColumns:hm==="dual"?"1fr 1fr":"1fr",marginTop:"16px"}}>
@@ -291,5 +291,6 @@ ReactDOM.render(<App/>,document.getElementById("root"));
 </script>
 </body>
 </html>
+
 
 
