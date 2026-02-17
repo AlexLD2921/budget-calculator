@@ -145,7 +145,7 @@ return <div>
 </div>
 }
 
-function PersonInput({p,setP,label}){
+const PersonInput=React.memo(function PersonInput({p,setP,label}){
 return <div className="card">
 <h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"16px"}}>{label}</h3>
 <div className="field">
@@ -187,8 +187,7 @@ return <div className="card">
 </select>
 </div>
 </div>
-}
-
+});
 function PersonResult({r,label}){
 return <div className="card">
 <h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"12px"}}>{label}</h3>
@@ -291,6 +290,7 @@ ReactDOM.render(<App/>,document.getElementById("root"));
 </script>
 </body>
 </html>
+
 
 
 
