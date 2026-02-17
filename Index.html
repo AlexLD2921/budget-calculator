@@ -18,10 +18,6 @@ button:disabled{cursor:not-allowed;opacity:0.5}
 .btn{padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;border:none;transition:all 0.15s}
 .btn-primary{background:#6366f1;color:#fff}
 .btn-primary:hover{background:#4f46e5}
-.btn-secondary{background:#f59e0b;color:#fff}
-.btn-secondary:hover{background:#d97706}
-.btn-outline{background:#fff;border:1px solid #d1d5db;color:#374151}
-.btn-outline:hover{background:#f9fafb}
 .stat{border-radius:12px;padding:16px;border:1px solid}
 .stat-green{background:#f0fdf4;border-color:#86efac;color:#16a34a}
 .stat-red{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
@@ -40,7 +36,6 @@ button:disabled{cursor:not-allowed;opacity:0.5}
 <script type="text/babel">
 const {useState,useEffect}=React;
 
-// UK Bank Holidays
 const BH=new Set(["2024-01-01","2024-03-29","2024-04-01","2024-05-06","2024-05-27","2024-08-26","2024-12-25","2024-12-26","2025-01-01","2025-04-18","2025-04-21","2025-05-05","2025-05-26","2025-08-25","2025-12-25","2025-12-26","2026-01-01","2026-04-03","2026-04-06","2026-05-04","2026-05-25","2026-08-31","2026-12-25","2026-12-28"]);
 const isWD=d=>{const w=d.getDay();return w!==0&&w!==6&&!BH.has(d.toISOString().slice(0,10))};
 const lastWD=(y,m)=>{let d=new Date(y,m+1,0);while(!isWD(d))d.setDate(d.getDate()-1);return new Date(d)};
@@ -50,7 +45,6 @@ const resDate=(r,y,m)=>{if(r==="last")return lastWD(y,m);if(r==="first")return f
 const gbp=n=>new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0}).format(n||0);
 const fmtD=d=>d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"—";
 
-// Tax calculations
 const calcTax=g=>{if(g<=12570)return 0;const ti=g-12570;if(g<=50270)return ti*0.20;if(g<=125140)return(50270-12570)*0.20+(g-50270)*0.40;return(50270-12570)*0.20+(125140-50270)*0.40+(g-125140)*0.45};
 const calcNI=g=>{if(g<=12570)return 0;if(g<=50270)return(g-12570)*0.08;return(50270-12570)*0.08+(g-50270)*0.02};
 const SL={plan1:{t:24990,r:0.09},plan2:{t:27295,r:0.09},plan4:{t:31395,r:0.09},plan5:{t:25000,r:0.09},postgrad:{t:21000,r:0.06}};
@@ -76,7 +70,6 @@ const emptyP=()=>({grossSalary:"",bonus:"",carBenefit:"",medicalBenefit:"",other
 
 const ls={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 
-// Main App
 function App(){
 const[tab,setTab]=useState("calc");
 const[incomes,setIncomes]=useState(()=>ls.get("apex_inc")||[]);
@@ -110,78 +103,11 @@ return <div className="container">
 </div>
 }
 
-// Pay Calculator
 function PayCalc({onUse}){
 const[hm,setHm]=useState("single");
 const[p1,setP1]=useState(emptyP());
 const[p2,setP2]=useState(emptyP());
 const r1=calcP(p1),r2=hm==="dual"?calcP(p2):null;
-
-const Field=({label,value,onChange,placeholder})=><div className="field">
-<label>{label}</label>
-<div style={{position:"relative"}}>
-<span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
-<input type="number" value={value} onChange={onChange} placeholder={placeholder} style={{paddingLeft:"26px"}}/>
-</div>
-</div>;
-
-const PersonInput=({p,setP,label})=><div className="card">
-<h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"16px"}}>{label}</h3>
-<Field label="Base Annual Salary" value={p.grossSalary} onChange={e=>setP({...p,grossSalary:e.target.value})} placeholder="50000"/>
-<div className="grid grid-2" style={{marginTop:"12px"}}>
-<Field label="Annual Bonus" value={p.bonus} onChange={e=>setP({...p,bonus:e.target.value})} placeholder="0"/>
-<Field label="Car Benefit" value={p.carBenefit} onChange={e=>setP({...p,carBenefit:e.target.value})} placeholder="0"/>
-<Field label="Pension %" value={p.pensionPercent} onChange={e=>setP({...p,pensionPercent:e.target.value})} placeholder="5"/>
-<Field label="Employer Pension %" value={p.employerPensionPercent} onChange={e=>setP({...p,employerPensionPercent:e.target.value})} placeholder="3"/>
-</div>
-<div className="field" style={{marginTop:"12px"}}>
-<label>Student Loan</label>
-<select value={p.studentLoan} onChange={e=>setP({...p,studentLoan:e.target.value})}>
-<option value="none">None</option>
-{Object.keys(SL).map(k=><option key={k} value={k}>{k.charAt(0).toUpperCase()+k.slice(1)}</option>)}
-</select>
-</div>
-</div>;
-
-const PersonResult=({r,label})=><div className="card">
-<h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"12px"}}>{label}</h3>
-<div style={{marginBottom:"12px"}}>
-<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #f3f4f6"}}>
-<span style={{color:"#6b7280",fontSize:"14px"}}>Gross Salary</span>
-<span style={{fontWeight:"600"}}>{gbp(r.gross)}</span>
-</div>
-{r.pen>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
-<span style={{color:"#9ca3af"}}>Your Pension</span>
-<span style={{color:"#f97316"}}>-{gbp(r.pen)}</span>
-</div>}
-{r.ePen>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px",background:"#f0fdf4",margin:"0 -8px",paddingLeft:"8px",paddingRight:"8px",borderRadius:"4px"}}>
-<span style={{color:"#16a34a"}}>+ Employer Pension</span>
-<span style={{color:"#16a34a",fontWeight:"600"}}>+{gbp(r.ePen)}</span>
-</div>}
-<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
-<span style={{color:"#9ca3af"}}>Income Tax</span>
-<span style={{color:"#ef4444"}}>-{gbp(r.tax)}</span>
-</div>
-<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
-<span style={{color:"#9ca3af"}}>National Insurance</span>
-<span style={{color:"#ef4444"}}>-{gbp(r.ni)}</span>
-</div>
-{r.sl>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
-<span style={{color:"#9ca3af"}}>Student Loan</span>
-<span style={{color:"#ef4444"}}>-{gbp(r.sl)}</span>
-</div>}
-</div>
-<div style={{padding:"14px",background:"#eef2ff",borderRadius:"8px",borderTop:"3px solid #6366f1"}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"10px"}}>
-<span style={{fontWeight:"600"}}>Take-Home</span>
-<span style={{fontSize:"24px",fontWeight:"700",color:"#4f46e5"}}>{gbp(r.net)}</span>
-</div>
-<div className="grid grid-2" style={{fontSize:"13px"}}>
-<div><span style={{color:"#6b7280",fontSize:"11px"}}>Monthly</span><div style={{fontWeight:"600"}}>{gbp(r.netM)}</div></div>
-<div><span style={{color:"#6b7280",fontSize:"11px"}}>Weekly</span><div style={{fontWeight:"600"}}>{gbp(r.netW)}</div></div>
-</div>
-</div>
-</div>;
 
 return <div>
 <div style={{display:"flex",justifyContent:"center",marginBottom:"20px"}}>
@@ -219,7 +145,92 @@ return <div>
 </div>
 }
 
-// Budget Setup (simplified for now)
+function PersonInput({p,setP,label}){
+return <div className="card">
+<h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"16px"}}>{label}</h3>
+<div className="field">
+<label>Base Annual Salary</label>
+<div style={{position:"relative"}}>
+<span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
+<input type="number" value={p.grossSalary} onChange={e=>setP({...p,grossSalary:e.target.value})} placeholder="50000" style={{paddingLeft:"26px"}}/>
+</div>
+</div>
+<div className="grid grid-2">
+<div className="field">
+<label>Annual Bonus</label>
+<div style={{position:"relative"}}>
+<span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
+<input type="number" value={p.bonus} onChange={e=>setP({...p,bonus:e.target.value})} placeholder="0" style={{paddingLeft:"26px"}}/>
+</div>
+</div>
+<div className="field">
+<label>Car Benefit</label>
+<div style={{position:"relative"}}>
+<span style={{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af"}}>£</span>
+<input type="number" value={p.carBenefit} onChange={e=>setP({...p,carBenefit:e.target.value})} placeholder="0" style={{paddingLeft:"26px"}}/>
+</div>
+</div>
+<div className="field">
+<label>Pension %</label>
+<input type="number" value={p.pensionPercent} onChange={e=>setP({...p,pensionPercent:e.target.value})} placeholder="5"/>
+</div>
+<div className="field">
+<label>Employer Pension %</label>
+<input type="number" value={p.employerPensionPercent} onChange={e=>setP({...p,employerPensionPercent:e.target.value})} placeholder="3"/>
+</div>
+</div>
+<div className="field">
+<label>Student Loan</label>
+<select value={p.studentLoan} onChange={e=>setP({...p,studentLoan:e.target.value})}>
+<option value="none">None</option>
+{Object.keys(SL).map(k=><option key={k} value={k}>{k.charAt(0).toUpperCase()+k.slice(1)}</option>)}
+</select>
+</div>
+</div>
+}
+
+function PersonResult({r,label}){
+return <div className="card">
+<h3 style={{fontSize:"16px",fontWeight:"600",marginBottom:"12px"}}>{label}</h3>
+<div style={{marginBottom:"12px"}}>
+<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #f3f4f6"}}>
+<span style={{color:"#6b7280",fontSize:"14px"}}>Gross Salary</span>
+<span style={{fontWeight:"600"}}>{gbp(r.gross)}</span>
+</div>
+{r.pen>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
+<span style={{color:"#9ca3af"}}>Your Pension</span>
+<span style={{color:"#f97316"}}>-{gbp(r.pen)}</span>
+</div>}
+{r.ePen>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px",background:"#f0fdf4",margin:"0 -8px",paddingLeft:"8px",paddingRight:"8px",borderRadius:"4px"}}>
+<span style={{color:"#16a34a"}}>+ Employer Pension</span>
+<span style={{color:"#16a34a",fontWeight:"600"}}>+{gbp(r.ePen)}</span>
+</div>}
+<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
+<span style={{color:"#9ca3af"}}>Income Tax</span>
+<span style={{color:"#ef4444"}}>-{gbp(r.tax)}</span>
+</div>
+<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
+<span style={{color:"#9ca3af"}}>National Insurance</span>
+<span style={{color:"#ef4444"}}>-{gbp(r.ni)}</span>
+</div>
+{r.sl>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:"13px"}}>
+<span style={{color:"#9ca3af"}}>Student Loan</span>
+<span style={{color:"#ef4444"}}>-{gbp(r.sl)}</span>
+</div>}
+</div>
+<div style={{padding:"14px",background:"#eef2ff",borderRadius:"8px",borderTop:"3px solid #6366f1"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"10px"}}>
+<span style={{fontWeight:"600"}}>Take-Home</span>
+<span style={{fontSize:"24px",fontWeight:"700",color:"#4f46e5"}}>{gbp(r.net)}</span>
+</div>
+<div className="grid grid-2" style={{fontSize:"13px"}}>
+<div><span style={{color:"#6b7280",fontSize:"11px"}}>Monthly</span><div style={{fontWeight:"600"}}>{gbp(r.netM)}</div></div>
+<div><span style={{color:"#6b7280",fontSize:"11px"}}>Weekly</span><div style={{fontWeight:"600"}}>{gbp(r.netW)}</div></div>
+</div>
+</div>
+</div>
+}
+
 function BudgetSetup({incomes,setIncomes,outgoings,setOutgoings}){
 const totalIn=incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
 const totalOut=outgoings.reduce((s,o)=>s+(o.monthlyAmount||0),0);
@@ -241,12 +252,11 @@ return <div>
 
 <div className="card">
 <h3 style={{fontSize:"18px",fontWeight:"600",marginBottom:"12px"}}>Outgoings</h3>
-<p style={{color:"#9ca3af",textAlign:"center",padding:"20px"}}>Budget wizard coming soon - add outgoings manually below</p>
+<p style={{color:"#9ca3af",textAlign:"center",padding:"20px"}}>Budget wizard coming soon</p>
 </div>
 </div>
 }
 
-// Dashboard
 function Dashboard({incomes,outgoings}){
 const totalIn=incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
 const totalOut=outgoings.reduce((s,o)=>s+(o.monthlyAmount||0),0);
@@ -273,7 +283,6 @@ return <div>
 
 {incomes.length===0?<div className="card" style={{textAlign:"center",padding:"40px"}}>
 <p style={{color:"#9ca3af",marginBottom:"12px"}}>Add income in the Pay Calculator to see your dashboard</p>
-<p style={{fontSize:"12px",color:"#d1d5db"}}>Charts, transfer schedule, and statement upload features coming soon</p>
 </div>:null}
 </div>
 }
