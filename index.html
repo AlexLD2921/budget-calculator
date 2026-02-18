@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -569,11 +569,12 @@ function IncomeWizard({onComplete,onCancel,initial}){
       <div className="wizard-label">Step 2 — Amount</div>
       <div className="wizard-title">How much do you receive?</div>
       <div style={{display:"flex",gap:"8px",marginBottom:"12px"}}>
-        {[["true","Net (take-home)"],["false","Gross (before tax)"]].map(([v,l])=>
-          <button key={v} onClick={()=>set("isNet",v==="true")} className="choice-btn" style={{flex:1,textAlign:"center",..( (d.isNet===true&&v==="true")||(d.isNet===false&&v==="false"))?{borderColor:"var(--indigo)",background:"var(--indigo-l)",color:"var(--indigo-d)",fontWeight:"700"}:{}}}>
+        {[["true","Net (take-home)"],["false","Gross (before tax)"]].map(([v,l])=>{
+          const isSel=(d.isNet===true&&v==="true")||(d.isNet===false&&v==="false");
+          return <button key={v} onClick={()=>set("isNet",v==="true")} className={`choice-btn${isSel?" sel-blue":""}`} style={{flex:1,textAlign:"center"}}>
             {l}
-          </button>
-        )}
+          </button>;
+        })}
       </div>
       <div className="field"><label>Monthly Amount (£)</label>
         <div className="input-prefix"><span className="prefix">£</span>
@@ -1100,4 +1101,3 @@ ReactDOM.render(<App/>,document.getElementById("root"));
 </script>
 </body>
 </html>
-
