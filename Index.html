@@ -111,7 +111,6 @@ return <div className="container">
 </div>
 }
 
-// PAY CALCULATOR
 function PayCalc({onUse}){
 const[hm,setHm]=useState("single");
 const[p1,setP1]=useState(emptyP());
@@ -206,9 +205,7 @@ return <div className="card">
 </div></div>
 </div>
 }
-
-// INCOME WIZARD
-function IncomeWizard({onComplete,onCancel}){
+  function IncomeWizard({onComplete,onCancel}){
 const[step,setStep]=useState(0);
 const[d,setD]=useState({amount:"",category:"Salary",dateRule:"last",customDay:"",name:"",id:Date.now()});
 const set=(k,v)=>setD(p=>({...p,[k]:v}));
@@ -254,7 +251,6 @@ return <div className="card" style={{maxWidth:"480px",margin:"0 auto"}}>
 </div>
 }
 
-// OUTGOING WIZARD
 function OutgoingWizard({onComplete,onCancel}){
 const[step,setStep]=useState(0);
 const[d,setD]=useState({category:"",amount:"",frequency:"monthly",dateRule:"1",customDay:"",account:"Starling",name:"",id:Date.now()});
@@ -312,8 +308,6 @@ return <div className="card" style={{maxWidth:"480px",margin:"0 auto"}}>
 </div>
 </div>
 }
-
-// BUDGET SETUP
 function BudgetSetup({incomes,setIncomes,outgoings,setOutgoings}){
 const[mode,setMode]=useState("view");
 const totalIn=incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
@@ -334,7 +328,7 @@ return <div>
 <div><p style={{fontWeight:"600",fontSize:"14px"}}>{i.name}</p><p style={{fontSize:"12px",color:"#9ca3af"}}>{i.category}</p></div>
 <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
 <span style={{color:"#16a34a",fontWeight:"700"}}>{gbp(i.amount)}/mo</span>
-<button onClick={()=>setIncomes(p=>p.filter(x=>x.id!==i.id))} style={{background:"none",border:"none",fontSize:"16px"}}>🗑️</button>
+<button onClick={()=>setIncomes(p=>p.filter(x=>x.id!==i.id))} style={{background:"none",border:"none",fontSize:"16px",cursor:"pointer"}}>🗑️</button>
 </div>
 </div>)}
 <div style={{display:"flex",justifyContent:"space-between",padding:"10px 16px",background:"#f0fdf4",borderRadius:"8px",fontSize:"14px",fontWeight:"700",color:"#16a34a",marginTop:"12px"}}>
@@ -362,7 +356,7 @@ return <div key={cat} style={{marginBottom:"12px"}}>
 <span style={{color:"#dc2626",fontWeight:"700",fontSize:"14px"}}>{gbp(o.monthlyAmount)}/mo</span>
 {o.frequency==="annual"&&<p style={{fontSize:"11px",color:"#9ca3af"}}>{gbp(o.amount)}/yr</p>}
 </div>
-<button onClick={()=>setOutgoings(p=>p.filter(x=>x.id!==o.id))} style={{background:"none",border:"none",fontSize:"16px"}}>🗑️</button>
+<button onClick={()=>setOutgoings(p=>p.filter(x=>x.id!==o.id))} style={{background:"none",border:"none",fontSize:"16px",cursor:"pointer"}}>🗑️</button>
 </div>
 </div>)}
 </div>
