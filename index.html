@@ -152,39 +152,41 @@ button:disabled{cursor:not-allowed;opacity:.5}
 <div id="root"></div>
 
 <script>
-// Track script loading
-window._loadErrors = [];
-window._scriptsLoaded = 0;
-window._scriptsNeeded = 4;
-
-function onScriptLoad() {
-  window._scriptsLoaded++;
-  if (window._scriptsLoaded === window._scriptsNeeded) {
-    initApp();
-  }
-}
-
-function onScriptError(name) {
-  window._loadErrors.push(name);
+function showError(msg) {
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('error-screen').style.display = 'flex';
-  document.getElementById('error-detail').textContent = 'Failed to load: ' + window._loadErrors.join(', ') + '\n\nPlease check your internet connection.';
+  document.getElementById('error-detail').textContent = msg;
 }
 
-function loadScript(src, name, crossorigin) {
-  var s = document.createElement('script');
-  s.src = src;
-  if (crossorigin) s.crossOrigin = 'anonymous';
-  s.onload = onScriptLoad;
-  s.onerror = function() { onScriptError(name); };
-  document.head.appendChild(s);
+function loadScript(src, name) {
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.crossOrigin = 'anonymous';
+    s.onload = function() { resolve(name); };
+    s.onerror = function() { reject(new Error('Failed to load: ' + name + '\n' + src)); };
+    document.head.appendChild(s);
+  });
 }
 
-// Load all dependencies
-loadScript('https://unpkg.com/react@18.2.0/umd/react.production.min.js', 'React', true);
-loadScript('https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js', 'ReactDOM', true);
-loadScript('https://unpkg.com/recharts@2.12.7/umd/Recharts.js', 'Recharts', true);
-loadScript('https://unpkg.com/@babel/standalone@7.23.10/babel.min.js', 'Babel', true);
+// Load in strict order: React first, then ReactDOM, then Recharts (needs React), then Babel
+loadScript('https://unpkg.com/react@18.2.0/umd/react.production.min.js', 'React')
+  .then(function() {
+    return loadScript('https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js', 'ReactDOM');
+  })
+  .then(function() {
+    // Recharts requires React & ReactDOM to already be on window
+    return loadScript('https://unpkg.com/recharts@2.12.7/umd/Recharts.js', 'Recharts');
+  })
+  .then(function() {
+    return loadScript('https://unpkg.com/@babel/standalone@7.23.10/babel.min.js', 'Babel');
+  })
+  .then(function() {
+    initApp();
+  })
+  .catch(function(err) {
+    showError(err.message + '\n\nPlease check your internet connection and try refreshing.');
+  });
 </script>
 
 <script id="app-source" type="text/plain">
